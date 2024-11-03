@@ -1,0 +1,101 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Report Viewer</title>
+  <meta name="robots" content="noindex">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      display: flex;
+      height: 100vh;
+    }
+    .sidebar {
+      position: absolute; /* Positioning the sidebar absolutely */
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 180px;
+      background-color: #f4f4f4;
+      padding: 10px;
+      box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+	  transition: transform 0.3s ease;
+      transform: translateX(0); 
+    }
+
+    .sidebar.hidden {
+      transform: translateX(-200px);
+      width: 0px;
+      padding: 0px;
+    }
+    .sidebar button {
+      padding: 7px;
+      font-size: 13px;
+      cursor: pointer;
+      margin: 5px 0;
+      width: 100%;
+    }
+    .sidebar button:hover {
+      background-color: #555;
+    }
+    iframe {
+      flex-grow: 1;
+      border: none;
+      width: 100%;
+    }
+    .toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000; 
+    }
+	 .toggle button {
+		background-color: red;
+		border: none;
+		color: white;
+		padding: 5px 20px;
+		cursor: pointer; 
+    }
+
+      
+  </style>
+</head>
+<body>
+
+<div class="toggle" onclick="toggleSidebar()">
+	<button> Toggle Sidebar</button>
+</div>
+
+<div class="sidebar" id="sidebar">
+  <a><img src="http://victore65.sg-host.com/wp-content/uploads/2024/11/Black___Blue_Minimalist_Modern_Initial_Font_Logo-removebg-preview.png" alt="" width="80" height="100" ></a><br><br><br>
+  <button onclick="loadIframe('https://www.wikipedia.org/')">Wikipedia</button>
+  <button onclick="loadIframe('https://lookerstudio.google.com/gallery')">Looker Studio</button><br><br>
+  <button onclick="loadIframe('https://www.wikipedia.org/')">Meta Report 1</button>
+  <button onclick="loadIframe('https://lookerstudio.google.com/gallery')">Meta Report 2</button><br><br>
+  <button onclick="loadIframe('https://www.wikipedia.org/')">Power Bi Report</button>
+  <button onclick="loadIframe('https://lookerstudio.google.com/gallery')">Tableau Report</button><br><br>
+    <button onclick="loadIframe('https://www.wikipedia.org/')">Digital Ads</button>
+  <button onclick="loadIframe('https://lookerstudio.google.com/gallery')">SEO Dashboard</button>
+</div>
+
+<iframe id="iframeDisplay" src=""></iframe>
+
+<script>
+  function loadIframe(link) {
+    document.getElementById('iframeDisplay').src = link;
+    toggleSidebar(); 
+  }
+
+  function toggleSidebar() {
+    var sidebar = document.getElementById('sidebar');
+    sidebar.classList.toggle('hidden');
+  }
+</script>
+
+</body>
+</html>
