@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+div.container {
+    width: 100%;
+    border: 1px solid gray;
+}
+
+header, footer {
+    padding: 1em;
+    color: white;
+    background-color: crimson;
+    clear: left;
+    text-align: center;
+}
+
+nav {
+    float: left;
+    max-width: 160px;
+    margin: 0;
+    padding: 1em;
+}
+
+nav ul {
+    list-style-type: none;
+    padding: 0;
+	 text-align: center;
+}
+   
+nav ul a {
+    text-decoration: none;
+}
+
+article {
+    margin-left: 170px;
+    border-left: 1px solid gray;
+    padding: 1em;
+    overflow: hidden;
+}
+.button2 {
+  display: inline-block;
+  border-radius: 4px;
+  background-color: crimson;
+  border: none;
+  color: #FFFFFF;
+  text-align: center;
+  font-size: 14px;
+  padding: 12px;
+  width:150px;
+  transition: all 0.5s;
+  cursor: pointer;
+  margin: 5px;
+}
+.button {
+  display: inline-block;
+  border-radius: 4px;
+  background-color: crimson;
+  border: none;
+  color: #FFFFFF;
+  text-align: center;
+  font-size: 12px;
+  padding: 16px;
+  width:80px;
+  transition: all 0.5s;
+  cursor: pointer;
+  margin: 5px;
+}
+
+.button span {
+  cursor: pointer;
+  display: inline-block;
+  position: relative;
+  transition: 0.5s;
+}
+
+.button span:after {
+  content: '\00bb';
+  position: absolute;
+  opacity: 0;
+  top: 0;
+  right: -20px;
+  transition: 0.5s;
+}
+
+.button:hover span {
+  padding-right: 25px;
+}
+
+.button:hover span:after {
+  opacity: 1;
+  right: 0;
+}
+
+/* unvisited link */
+a:link {
+    color: black;
+}
+
+/* visited link */
+a:visited {
+    color: black;
+}
+
+/* mouse over link */
+a:hover {
+    color: blue;
+}
+
+/* selected link */
+a:active {
+    color: crimson;
+}
+
+</style>
+
+<script type="text/javascript" src="jquery-3.1.1.min.js"></script>
+<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="flot/excanvas.min.js"></script><![endif]-->
+<script type="text/javascript" src="flot/jquery.flot.min.js"></script>
+<script type="text/javascript" src="flot/jquery.flot.time.js"></script>    
+<script type="text/javascript" src="jshashtable-master/hashtable.js"></script>    
+<script type="text/javascript" src="jquery-numberformatter-master/src/jquery.numberformatter.js"></script>
+<script type="text/javascript" src="flot/jquery.flot.symbol.js"></script>
+<script type="text/javascript" src="flot-axislabels-master/jquery.flot.axislabels.js"></script>
+
+
+<script>
+var attvalue = [], medvalue = [], deltavalue = [];
+var dataset;
+var dataset2;
+var dataset3;
+var data;
+var dataset4;
+var ticks = [[0, "Delta"], [1, "Theta"],[2,"LowAlpha"],[3,"HighAlpha"],[4,"LowBeta"],[5,"HighBeta"],[6,"LowGamma"],[7,"HighGamma"]];
+var totalPoints = 100;
+var updateInterval = 1000;
+var now = new Date().getTime();
+
+var options = {
+    series: {
+        lines: {
+            lineWidth: 1.2
+        },
+        bars: {
+            align: "center",
+            fillColor: { colors: [{ opacity: 1 }, { opacity: 1}] },
+            barWidth: 500,
+            lineWidth: 1
+        }
+    },
+    xaxis: {
+        mode: "time",
+        tickSize: [60, "second"],
+        tickFormatter: function (v, axis) {
+            var date = new Date(v);
+
+            if (date.getSeconds() % 20 == 0) {
+                var hours = date.getHours() < 10 ? "0" + date.getHours() : date.getHours();
+                var minutes = date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes();
+                var seconds = date.getSeconds() < 10 ? "0" + date.getSeconds() : date.getSeconds();
+
+                return hours + ":" + minutes + ":" + seconds;
+            } else {
+                return "";
+            }
+        },
+        axisLabel: "Time",
+        axisLabelUseCanvas: true,
+        axisLabelFontSizePixels: 12,
+        axisLabelFontFamily: 'Verdana, Arial',
+        axisLabelPadding: 10
+    },
+    yaxis: 
+        {
+            min: 0,
+            max: 100,
+            tickSize: 5,
+            tickFormatter: function (v, axis) {
+                if (v % 10 == 0) {
+                    return v ;
+                } else {
+                    return "";
+                }
+            },
+            axisLabel: "Intensity",
+            axisLabelUseCanvas: true,
+            axisLabelFontSizePixels: 12,
+            axisLabelFontFamily: 'Verdana, Arial',
+            axisLabelPadding: 6
+        },
+    legend: {
+        noColumns: 0,
+        position:"nw"
+    },
+    grid: {      
+        backgroundColor: { colors: ["#ffffff", "#EDF5FF"] }
+    }
+};
+
+var options2 = {
+            series: {
+                bars: {
+                    show: true
+                }
+            },
+            bars: {
+                align: "center",
+                barWidth: 0.5
+            },
+            xaxis: {
+                axisLabel: "EEG Powers",
+                axisLabelUseCanvas: true,
+                axisLabelFontSizePixels: 12,
+                axisLabelFontFamily: 'Verdana, Arial',
+                axisLabelPadding: 10,
+                ticks: ticks
+            },
+            yaxis: {
+                axisLabel: "Intensity",
+                axisLabelUseCanvas: true,
+                axisLabelFontSizePixels: 12,
+                axisLabelFontFamily: 'Verdana, Arial',
+                axisLabelPadding: 3,
+                tickFormatter: function (v, axis) {
+                    return v ;
+                }
+            },
+            legend: {
+                noColumns: 0,
+                labelBoxBorderColor: "#000000",
+                position: "nw"
+            },
+            grid: {
+                hoverable: true,
+                borderWidth: 2,
+                backgroundColor: { colors: ["#ffffff", "#EDF5FF"] }
+            }
+        };
+
+
+
+
+var options3 = {
+    series: {
+        lines: {
+            lineWidth: 1.2
+        },
+        bars: {
+            align: "center",
+            fillColor: { colors: [{ opacity: 1 }, { opacity: 1}] },
+            barWidth: 500,
+            lineWidth: 1
+        }
+    },
+    xaxis: {
+        mode: "time",
+        tickSize: [60, "second"],
+        tickFormatter: function (v, axis) {
+            var date = new Date(v);
+
+            if (date.getSeconds() % 20 == 0) {
+                var hours = date.getHours() < 10 ? "0" + date.getHours() : date.getHours();
+                var minutes = date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes();
+                var seconds = date.getSeconds() < 10 ? "0" + date.getSeconds() : date.getSeconds();
+
+                return hours + ":" + minutes + ":" + seconds;
+            } else {
+                return "";
+            }
+        },
+        axisLabel: "Time",
+        axisLabelUseCanvas: true,
+        axisLabelFontSizePixels: 12,
+        axisLabelFontFamily: 'Verdana, Arial',
+        axisLabelPadding: 10
+    },
+    yaxis: 
+        {
+            
+            axisLabel: "Intensity",
+            axisLabelUseCanvas: true,
+            axisLabelFontSizePixels: 12,
+            axisLabelFontFamily: 'Verdana, Arial',
+            axisLabelPadding: 6,
+	    tickFormatter: function (v, axis) {
+                    return v ;
+                }
+        },
+    legend: {
+        noColumns: 0,
+        position:"nw"
+    },
+    grid: {      
+        backgroundColor: { colors: ["#ffffff", "#EDF5FF"] }
+    }
+};
+
+
+function initData() {
+    for (var i = 0; i < totalPoints; i++) {
+        var temp = [now += updateInterval, 0];
+
+        attvalue.push(temp);
+        medvalue.push(temp);
+	deltavalue.push(temp);
+       data= [[0, 0],[1, 0],[2,0],[3,0],[4,0],[5,0],[6,0],[7,0]];
+    }
+}
+
+function GetData() {
+    $.ajaxSetup({ cache: false });
+
+    $.ajax({
+        url: "update.php",
+        dataType: 'json',
+        success: update,
+        error: function () {
+            setTimeout(GetData, updateInterval);
+        }
+    });
+}
+
+var temp;
+
+function update(_data) {
+    attvalue.shift();
+    medvalue.shift();
+    deltavalue.shift();
+
+    now += updateInterval
+
+    temp = [now, _data.attvalue];
+    attvalue.push(temp);
+
+    temp = [now, _data.medvalue];
+    medvalue.push(temp);
+
+	temp = [now, _data.deltavalue];
+    deltavalue.push(temp);
+
+  data = [[0, _data.d],[1, _data.t],[2, _data.la],[3, _data.ha],[4, _data.lb],[5, _data.hb],[6, _data.lg],[7, _data.mg]];
+    
+
+   
+      dataset =       [{ label: "ATTENTION:" +  _data.attvalue ,  data: attvalue,     lines: { fill: true, lineWidth: 1.2 }, color: "#00FF00" }];
+ 	 dataset2 =   [{ label: "DELTA:" +      _data.deltavalue , data: deltavalue,    lines: { fill: true, lineWidth: 1.2 }, color: "#0044FF" }];
+      dataset3 =      [{ label: "MEDITATION:" + _data.medvalue , data: medvalue, lines: { fill: true, lineWidth: 1.2 }, color: "#FF0000" } ] ;      
+       dataset4 =       [{ label: "EEG" ,  data: data, color: "#00FF00" }];
+
+    $.plot($("#flot-placeholder1"), dataset, options);
+    $.plot($("#flot-placeholder3"), dataset3, options);
+    $.plot($("#flot-placeholder2"), dataset2, options3);
+    $.plot($("#flot-placeholder4"), dataset4, options2);
+    setTimeout(GetData, updateInterval);
+}
+
+
+$(document).ready(function () {
+    initData();
+
+    dataset =		[{ label: "ATTENTION",  data: attvalue,     lines:{fill:true, lineWidth:1.2}, color: "#00FF00" }];
+ dataset2 =		[{ label: "DELTA",      data: deltavalue,    lines:{fill:true, lineWidth:1.2}, color: "#0044FF" }];
+    dataset3 =		[{ label: "MEDITATION", data: medvalue, lines:{fill:true, lineWidth:1.2}, color: "#FF0000" }];
+     dataset4 =		[{ label: "EEG",  data: data,   color: "#00FF00" }];
+
+    	$.plot($("#flot-placeholder1"), dataset, options);
+	$.plot($("#flot-placeholder3"), dataset3, options);
+	$.plot($("#flot-placeholder2"), dataset2, options3);
+	$.plot($("#flot-placeholder4"), dataset4, options2);
+
+    	setTimeout(GetData, updateInterval);
+});
+
+
+
+</script>
+
+
+</head>
+<body>
+
+<div class="container">
+
+<header>
+   <h1>Performance Data Visualizer</h1>
+</header>
+  
+<nav>
+  <ul>
+  	
+    <li><a href="#" class="button" style="vertical-align:middle"><span>REFRESH </span> </a></li>
+     <li><a href="session.html" class="button" style="vertical-align:middle"><span>ARCHIVE </span> </a></li>
+	<li><a href="homepage.html" class="button" style="vertical-align:middle"><span>HOME	</span> </a></li>
+    </ul>
+  <p><button class="button2">EEG Power Values</button></p>
+  <ul>
+    <li><a href="index.php">delta</a></li>
+    <li><a href="theta.php">theta</a></li>
+    <li><a href="lowalpha.php">low alpha</a></li>
+    <li><a href="highalpha.php">high alpha</a></li>
+    <li><a href="lowbeta.php">low beta</a></li>
+    <li><a href="highbeta.php">high beta</a></li>
+    <li><a href="lowgamma.php">low gamma</a></li>
+    <li><a href="midgamma.php">mid gamma</a></li>
+    <li><a href="help.html">...HELP...</a></li>
+	
+  </ul>
+</nav>
+
+<article>
+  <h1><button class="button2">Attention Chart</button></h1>
+  <div id="flot-placeholder1" style="width:700px;height:250px;margin:0 auto"></div>
+
+   <h1><button class="button2">Meditation Chart</button></h1>
+  <div id="flot-placeholder3" style="width:700px;height:250px;margin:0 auto"></div>
+
+   <h1><button class="button2">Delta Chart</button> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button class="button2">EEG Power Chart</button></h1>
+	 <div id="flot-placeholder2" style="width:700px;height:250px;margin:0 auto"></div>
+	 <div id="flot-placeholder4" style="width:1000px;height:200px;margin:0 auto"></div>
+	
+</article>
+
+<footer>Mind Controlled Scalextric Visualization Module By Olajide Ajayi Surpervised By Dr Alex Shenfield</footer>
+
+</div>
+
+</body>
+</html>
